@@ -1,0 +1,22 @@
+{
+  "publishes": {
+    "hollow-quiche-r22w": {
+      "siteUrl": "https://hollow-quiche-r22w.here.now/",
+      "claimToken": "3ede83cc14878e92da3731a7dc37a57827f959b76db7e148be40acfc4aef0364",
+      "claimUrl": "https://here.now/claim?slug=hollow-quiche-r22w&token=3ede83cc14878e92da3731a7dc37a57827f959b76db7e148be40acfc4aef0364",
+      "expiresAt": "2026-07-28T23:06:44.562Z"
+    },
+    "mellow-willow-bk4m": {
+      "siteUrl": "https://mellow-willow-bk4m.here.now/"
+    },
+    "lusty-kernel-xnyn": {
+      "siteUrl": "https://lusty-kernel-xnyn.here.now/"
+    },
+    "present-grove-a4bd": {
+      "siteUrl": "https://present-grove-a4bd.here.now/",
+      "claimToken": "3c6601f6317570271e93cdc56405d680a2c8477a8b10b619db7deefe5185ed5a",
+      "claimUrl": "https://here.now/claim?slug=present-grove-a4bd&token=3c6601f6317570271e93cdc56405d680a2c8477a8b10b619db7deefe5185ed5a",
+      "expiresAt": "2026-07-28T23:44:03.448Z"
+    }
+  }
+}
