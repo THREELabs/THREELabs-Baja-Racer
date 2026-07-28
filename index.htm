@@ -128,18 +128,24 @@
       <b>↑/W</b> gas &nbsp; <b>↓/S</b> brake &nbsp; <b>←→/AD</b> steer &nbsp;
       <b>SHIFT / SPACE</b> nitro &nbsp; <b>ENTER</b> start/restart &nbsp; <b>P</b> pause &nbsp; <b>M</b> mute
     </div>
-    <div id="ytplayer" style="position:absolute; left:-9999px; width:1px; height:1px; opacity:0; pointer-events:none;">
+    <div id="ytplayer" style="position:absolute; top:0; left:0; width:2px; height:2px; opacity:0.01; z-index:-1; pointer-events:none;">
     </div>
   </div>
 
   <script src="https://www.youtube.com/iframe_api"></script>
   <script>
     var ytPlayer = null;
+    var ytReady = false;
     function onYouTubeIframeAPIReady() {
       ytPlayer = new YT.Player('ytplayer', {
         height: '1', width: '1',
         videoId: '0yyNBHqS8AI',
-        playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1, 'playlist': '0yyNBHqS8AI', 'playsinline': 1 }
+        playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1, 'playlist': '0yyNBHqS8AI', 'playsinline': 1 },
+        events: {
+          'onReady': function() {
+            ytReady = true;
+          }
+        }
       });
     }
   </script>
@@ -445,6 +451,30 @@
           for (let k = 0; k < 5; k++) {
             g.beginPath();
             g.ellipse(x + k * 22 * s - 40 * s, y + ((k % 2) ? 6 : 0) * s, (26 + rnd() * 16) * s, (11 + rnd() * 7) * s, 0, 0, PI * 2);
+            g.fill();
+          }
+        }
+      });
+
+      /* ---- night clouds (rolling in with the moon) --------------------------- */
+      const NIGHT_CLOUDS_1 = mkSprite(LAYER_W, 120, g => {
+        for (let i = 0; i < 18; i++) {
+          const x = rnd() * LAYER_W, y = 8 + rnd() * 70, s = 0.7 + rnd() * 1.4;
+          g.fillStyle = 'rgba(180,190,220,' + (0.12 + rnd() * 0.18).toFixed(2) + ')';
+          for (let k = 0; k < 7; k++) {
+            g.beginPath();
+            g.ellipse(x + k * 26 * s - 50 * s, y + ((k % 2) ? 8 : -4) * s, (30 + rnd() * 22) * s, (14 + rnd() * 10) * s, 0, 0, PI * 2);
+            g.fill();
+          }
+        }
+      });
+      const NIGHT_CLOUDS_2 = mkSprite(LAYER_W, 100, g => {
+        for (let i = 0; i < 14; i++) {
+          const x = rnd() * LAYER_W, y = 6 + rnd() * 55, s = 0.6 + rnd() * 1.2;
+          g.fillStyle = 'rgba(140,150,190,' + (0.08 + rnd() * 0.14).toFixed(2) + ')';
+          for (let k = 0; k < 6; k++) {
+            g.beginPath();
+            g.ellipse(x + k * 30 * s - 45 * s, y + ((k % 3) ? 5 : -3) * s, (28 + rnd() * 18) * s, (12 + rnd() * 9) * s, 0, 0, PI * 2);
             g.fill();
           }
         }
@@ -762,13 +792,10 @@
          ========================================================================= */
       const Sound = {
         ac: null, on: true, master: null, o1: null, o2: null, lpf: null, eg: null,
-        noise: null, ng: null, nf: null, ytStarted: false,
+        noise: null, ng: null, nf: null, ytStarted: false, userGesture: false,
         init() {
-          if (!this.ytStarted && window.ytPlayer && typeof window.ytPlayer.playVideo === 'function') {
-            window.ytPlayer.playVideo();
-            if (!this.on && typeof window.ytPlayer.mute === 'function') window.ytPlayer.mute();
-            this.ytStarted = true;
-          }
+          this.userGesture = true;
+          this.tryYT();
           if (this.ac) { if (this.ac.state === 'suspended') this.ac.resume(); return; }
           const AC = window.AudioContext || window.webkitAudioContext;
           if (!AC) return;
@@ -795,6 +822,18 @@
           this.ng = this.ac.createGain(); this.ng.gain.value = 0;
           this.noise.connect(this.nf); this.nf.connect(this.ng); this.ng.connect(this.master);
           this.noise.start();
+        },
+        tryYT() {
+          if (this.ytStarted || !this.userGesture) return;
+          if (window.ytReady && window.ytPlayer && typeof window.ytPlayer.playVideo === 'function') {
+            try {
+              window.ytPlayer.setVolume(100);
+              window.ytPlayer.unMute();
+              window.ytPlayer.playVideo();
+              if (!this.on) window.ytPlayer.mute();
+              this.ytStarted = true;
+            } catch (e) { /* retry later */ }
+          }
         },
         toggle() {
           this.on = !this.on;
@@ -885,8 +924,9 @@
         }
       }
 
-      function drawLayer(img, offsetX, y) {
-        const w = img.width;
+      function drawLayer(sprite, offsetX, y) {
+        const img = sprite.img || sprite;
+        const w = sprite.w || img.width;
         let x = -(((offsetX % w) + w) % w);
         while (x < W + 2) { ctx.drawImage(img, Math.round(x), Math.round(y)); x += w; }
       }
@@ -951,9 +991,22 @@
         ctx.fillStyle = COLORS.GROUND; ctx.fillRect(-8, HORIZON, W + 16, H - HORIZON + 8);
         // parallax layers
         const py = limit(playerY * 0.0035, -70, 70);
-        drawLayer(CLOUDS, skyOffset * 0.55, HORIZON - CLOUDS.h - 58 + py * 0.4);
+        drawLayer(CLOUDS, skyOffset * 0.55 + performance.now() * 0.02, HORIZON - CLOUDS.h - 58 + py * 0.4);
         drawLayer(MOUNTAINS, hillOffset, HORIZON - MOUNTAINS.h + 8 + py * 0.7);
         drawLayer(DUNES, duneOffset, HORIZON - DUNES.h + 14 + py);
+
+        // night clouds rolling in after the moon appears (rendered AFTER mountains/dunes so they're visible)
+        if (typeof gameTime !== 'undefined' && gameTime > 20) {
+          const cloudFade = Math.min(1, (gameTime - 20) / 10);
+          const now = performance.now();
+          ctx.save();
+          ctx.globalAlpha = cloudFade * 0.8;
+          drawLayer(NIGHT_CLOUDS_1, skyOffset * 0.3 + now * 0.012, HORIZON - NIGHT_CLOUDS_1.h - 40 + Math.sin(now * 0.0004) * 6);
+          ctx.globalAlpha = cloudFade * 0.6;
+          drawLayer(NIGHT_CLOUDS_2, skyOffset * 0.2 - now * 0.008, HORIZON - NIGHT_CLOUDS_2.h + 10 + Math.sin(now * 0.0003 + 1) * 8);
+          ctx.restore();
+        }
+
         // heat haze band at horizon
         ctx.globalAlpha = 0.35; ctx.fillStyle = COLORS.FOG;
         ctx.fillRect(-8, HORIZON - 6, W + 16, 14); ctx.globalAlpha = 1;
@@ -1427,6 +1480,9 @@
 
         drawHUD(playerSeg);
         drawOverlays();
+
+        // Retry YouTube music if it hasn't started yet
+        if (!Sound.ytStarted && Sound.userGesture) Sound.tryYT();
 
         requestAnimationFrame(frame);
       }
