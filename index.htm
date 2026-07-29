@@ -38,33 +38,38 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 10px;
+      background: #000;
     }
 
     #frame {
-      position: relative;
-      border: 6px solid #4a3418;
-      border-radius: 8px;
-      box-shadow: 0 0 0 3px #17100a, 0 20px 60px rgba(0, 0, 0, .8);
+      position: absolute;
+      inset: 0;
       background: #000;
       line-height: 0;
+      overflow: hidden;
     }
 
     canvas {
       display: block;
-      width: min(96vw, calc(88vh * 4 / 3));
-      height: auto;
-      aspect-ratio: 4/3;
+      width: 100%;
+      height: 100%;
+      object-fit: fill;
       image-rendering: pixelated;
       image-rendering: crisp-edges;
     }
 
     #legend {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
       font-size: 12px;
       letter-spacing: 1px;
       text-align: center;
       opacity: .75;
       max-width: 90vw;
+      z-index: 10;
+      text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
     }
 
     #legend b {
@@ -73,6 +78,10 @@
 
     /* touch controls (Bootstrap) */
     #pad {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
       width: 100%;
       max-width: 600px;
       display: none;
@@ -128,7 +137,8 @@
       <b>↑/W</b> gas &nbsp; <b>↓/S</b> brake &nbsp; <b>←→/AD</b> steer &nbsp;
       <b>SHIFT / SPACE</b> nitro &nbsp; <b>ENTER</b> start/restart &nbsp; <b>P</b> pause &nbsp; <b>M</b> mute
     </div>
-    <div id="ytplayer" style="position:absolute; top:0; left:0; width:2px; height:2px; opacity:0.01; z-index:-1; pointer-events:none;">
+    <div id="ytplayer"
+      style="position:absolute; top:-1000px; left:-1000px; width:200px; height:200px; opacity:0; z-index:-1; pointer-events:none;">
     </div>
   </div>
 
@@ -138,11 +148,11 @@
     var ytReady = false;
     function onYouTubeIframeAPIReady() {
       ytPlayer = new YT.Player('ytplayer', {
-        height: '1', width: '1',
+        height: '200', width: '200',
         videoId: '0yyNBHqS8AI',
-        playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1, 'playlist': '0yyNBHqS8AI', 'playsinline': 1 },
+        playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1, 'playlist': '0yyNBHqS8AI', 'playsinline': 1, 'origin': window.location.origin },
         events: {
-          'onReady': function() {
+          'onReady': function () {
             ytReady = true;
           }
         }
@@ -445,37 +455,49 @@
       const LAYER_W = 1280;
 
       const CLOUDS = mkSprite(LAYER_W, 150, g => {
-        for (let i = 0; i < 26; i++) {
+        for (let i = 0; i < 3; i++) {
           const x = rnd() * LAYER_W, y = 10 + rnd() * 90, s = 0.55 + rnd() * 1.1;
           g.fillStyle = 'rgba(255,238,214,' + (0.22 + rnd() * 0.35).toFixed(2) + ')';
-          for (let k = 0; k < 5; k++) {
-            g.beginPath();
-            g.ellipse(x + k * 22 * s - 40 * s, y + ((k % 2) ? 6 : 0) * s, (26 + rnd() * 16) * s, (11 + rnd() * 7) * s, 0, 0, PI * 2);
-            g.fill();
+          for (let offset of [-LAYER_W, 0, LAYER_W]) {
+            g.save(); g.translate(offset, 0);
+            for (let k = 0; k < 5; k++) {
+              g.beginPath();
+              g.ellipse(x + k * 22 * s - 40 * s, y + ((k % 2) ? 6 : 0) * s, (26 + rnd() * 16) * s, (11 + rnd() * 7) * s, 0, 0, PI * 2);
+              g.fill();
+            }
+            g.restore();
           }
         }
       });
 
       /* ---- night clouds (rolling in with the moon) --------------------------- */
       const NIGHT_CLOUDS_1 = mkSprite(LAYER_W, 120, g => {
-        for (let i = 0; i < 18; i++) {
+        for (let i = 0; i < 2; i++) {
           const x = rnd() * LAYER_W, y = 8 + rnd() * 70, s = 0.7 + rnd() * 1.4;
           g.fillStyle = 'rgba(180,190,220,' + (0.12 + rnd() * 0.18).toFixed(2) + ')';
-          for (let k = 0; k < 7; k++) {
-            g.beginPath();
-            g.ellipse(x + k * 26 * s - 50 * s, y + ((k % 2) ? 8 : -4) * s, (30 + rnd() * 22) * s, (14 + rnd() * 10) * s, 0, 0, PI * 2);
-            g.fill();
+          for (let offset of [-LAYER_W, 0, LAYER_W]) {
+            g.save(); g.translate(offset, 0);
+            for (let k = 0; k < 7; k++) {
+              g.beginPath();
+              g.ellipse(x + k * 26 * s - 50 * s, y + ((k % 2) ? 8 : -4) * s, (30 + rnd() * 22) * s, (14 + rnd() * 10) * s, 0, 0, PI * 2);
+              g.fill();
+            }
+            g.restore();
           }
         }
       });
       const NIGHT_CLOUDS_2 = mkSprite(LAYER_W, 100, g => {
-        for (let i = 0; i < 14; i++) {
+        for (let i = 0; i < 2; i++) {
           const x = rnd() * LAYER_W, y = 6 + rnd() * 55, s = 0.6 + rnd() * 1.2;
           g.fillStyle = 'rgba(140,150,190,' + (0.08 + rnd() * 0.14).toFixed(2) + ')';
-          for (let k = 0; k < 6; k++) {
-            g.beginPath();
-            g.ellipse(x + k * 30 * s - 45 * s, y + ((k % 3) ? 5 : -3) * s, (28 + rnd() * 18) * s, (12 + rnd() * 9) * s, 0, 0, PI * 2);
-            g.fill();
+          for (let offset of [-LAYER_W, 0, LAYER_W]) {
+            g.save(); g.translate(offset, 0);
+            for (let k = 0; k < 6; k++) {
+              g.beginPath();
+              g.ellipse(x + k * 30 * s - 45 * s, y + ((k % 3) ? 5 : -3) * s, (28 + rnd() * 18) * s, (12 + rnd() * 9) * s, 0, 0, PI * 2);
+              g.fill();
+            }
+            g.restore();
           }
         }
       });
@@ -483,18 +505,32 @@
       const MOUNTAINS = mkSprite(LAYER_W, 190, g => {
         function ridge(baseY, h, color, step, seed) {
           g.fillStyle = color; g.beginPath(); g.moveTo(0, 190);
+
+          const getVal = (vx) => baseY - h * (0.45 + 0.55 * Math.abs(Math.sin(vx * 0.0043 + seed) + 0.5 * Math.sin(vx * 0.011 + seed * 2)) / 1.5);
+
           for (let x = 0; x <= LAYER_W; x += step) {
-            const y = baseY - h * (0.45 + 0.55 * Math.abs(Math.sin(x * 0.0043 + seed) + 0.5 * Math.sin(x * 0.011 + seed * 2)) / 1.5);
+            // Seamlessly blend the start and end of the layer so it repeats perfectly
+            const blend = x / LAYER_W;
+            const y = getVal(x) * (1 - blend) + getVal(x - LAYER_W) * blend;
             g.lineTo(x, y);
           }
           g.lineTo(LAYER_W, 190); g.closePath(); g.fill();
         }
-        ridge(120, 110, '#8a6f8f', 26, 0.4);   // far range
-        ridge(150, 96, '#7a5c62', 22, 1.9);    // mid range
-        ridge(178, 70, '#6a4a3a', 18, 3.3);    // near range
+        ridge(130, 80, '#2e4f2b', 26, 0.4);    // far range
+        ridge(155, 65, '#3a6635', 22, 1.9);    // mid range
+        ridge(180, 45, '#4a8244', 18, 3.3);    // near range
         // snowless highlights
         g.fillStyle = 'rgba(255,220,180,.16)';
-        for (let x = 0; x < LAYER_W; x += 64) { g.fillRect(x, 150 - ((x * 7) % 40), 26, 6); }
+        for (let x = 0; x < LAYER_W; x += 64) { g.fillRect(x, 155 - ((x * 7) % 30), 26, 6); }
+      });
+
+      const STARS = mkSprite(LAYER_W, 190, g => {
+        g.fillStyle = '#ffffff';
+        for (let i = 0; i < 200; i++) {
+          const x = rnd() * LAYER_W, y = rnd() * 150, s = 0.4 + rnd() * 1.2;
+          g.globalAlpha = 0.2 + rnd() * 0.8;
+          g.beginPath(); g.arc(x, y, s, 0, PI * 2); g.fill();
+        }
       });
 
       const DUNES = mkSprite(LAYER_W, 120, g => {
@@ -943,13 +979,23 @@
       }
 
       function drawBackground() {
-        let t = 0;
-        if (typeof gameTime !== 'undefined') t = Math.min(1, gameTime / 22);
+        let cycle = typeof gameTime !== 'undefined' ? gameTime % 180 : 0;
+        let sunAngle = (cycle / 180) * Math.PI * 2 + Math.PI / 2;
+        let moonAngle = sunAngle + Math.PI;
 
-        const c1 = lerpColor('#2b6ec4', '#0a0b1c', t);
-        const c2 = lerpColor('#66aee0', '#151b3d', t);
-        const c3 = lerpColor('#c6d9d2', '#2b2c4c', t);
-        const c4 = lerpColor('#f0dfab', '#402435', t);
+        // t is darkness level (0 = day, 1 = night)
+        let t = Math.max(0, Math.min(1, -Math.cos(sunAngle) * 2.5));
+        window.currentDarkness = t; // expose for headlights
+
+        function multiLerp(cDay, cSunset, cNight, val) {
+          if (val < 0.5) return lerpColor(cDay, cSunset, val * 2);
+          return lerpColor(cSunset, cNight, (val - 0.5) * 2);
+        }
+
+        const c1 = multiLerp('#2b6ec4', '#ff4d4d', '#040510', t);
+        const c2 = multiLerp('#66aee0', '#ff9a44', '#0c0d24', t);
+        const c3 = multiLerp('#c6d9d2', '#f2d06b', '#16173a', t);
+        const c4 = multiLerp('#f0dfab', '#c08267', '#241220', t);
 
         let skyGrad = ctx.createLinearGradient(0, 0, 0, HORIZON + 10);
         skyGrad.addColorStop(0, c1);
@@ -959,34 +1005,46 @@
 
         ctx.fillStyle = skyGrad; ctx.fillRect(-8, -8, W + 16, HORIZON + 12);
 
-        // sun
-        if (typeof gameTime === 'undefined' || gameTime <= 22) {
-          const sx = W * 0.72 - (skyOffset * 0.06) % (W * 1.6);
-          const sy = HORIZON - 96 + (216 * t);
+        // stars (fade in at night)
+        if (t > 0.1) {
           ctx.save();
-          const gr = ctx.createRadialGradient(sx, sy, 4, sx, sy, 110);
+          ctx.globalAlpha = t * 0.8;
+          drawLayer(STARS, skyOffset * 0.05, 0);
+          ctx.restore();
+        }
+
+        const skyPan = (skyOffset * 0.05) % W;
+        const orbitRadiusX = W / 2 - 80;
+        const orbitRadiusY = 180;
+
+        // sun
+        const sunY = HORIZON + 40 - Math.cos(sunAngle) * orbitRadiusY;
+        if (sunY < HORIZON + 120) {
+          const sunX = W / 2 - Math.sin(sunAngle) * orbitRadiusX;
+          ctx.save();
+          const gr = ctx.createRadialGradient(sunX, sunY, 4, sunX, sunY, 110);
           gr.addColorStop(0, 'rgba(255,246,200,.95)');
           gr.addColorStop(0.25, 'rgba(255,214,120,.55)');
           gr.addColorStop(1, 'rgba(255,190,90,0)');
-          ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(sx, sy, 110, 0, PI * 2); ctx.fill();
-          ctx.fillStyle = '#fff6cf'; ctx.beginPath(); ctx.arc(sx, sy, 26, 0, PI * 2); ctx.fill();
+          ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(sunX, sunY, 110, 0, PI * 2); ctx.fill();
+          ctx.fillStyle = '#fff6cf'; ctx.beginPath(); ctx.arc(sunX, sunY, 26, 0, PI * 2); ctx.fill();
           ctx.restore();
         }
 
         // moon
-        if (typeof gameTime !== 'undefined' && gameTime > 22) {
-          let mt = Math.min(1, (gameTime - 22) / 10);
-          const mx = W * 0.28 - (skyOffset * 0.06) % (W * 1.6);
-          const my = HORIZON + 120 - (216 * mt);
+        const moonY = HORIZON + 40 - Math.cos(moonAngle) * orbitRadiusY;
+        if (moonY < HORIZON + 120) {
+          const moonX = W / 2 - Math.sin(moonAngle) * orbitRadiusX;
           ctx.save();
-          const mgr = ctx.createRadialGradient(mx, my, 4, mx, my, 80);
+          const mgr = ctx.createRadialGradient(moonX, moonY, 4, moonX, moonY, 80);
           mgr.addColorStop(0, 'rgba(255,255,255,.8)');
           mgr.addColorStop(0.3, 'rgba(200,200,255,.4)');
           mgr.addColorStop(1, 'rgba(255,255,255,0)');
-          ctx.fillStyle = mgr; ctx.beginPath(); ctx.arc(mx, my, 80, 0, PI * 2); ctx.fill();
-          ctx.fillStyle = '#eef'; ctx.beginPath(); ctx.arc(mx, my, 22, 0, PI * 2); ctx.fill();
+          ctx.fillStyle = mgr; ctx.beginPath(); ctx.arc(moonX, moonY, 80, 0, PI * 2); ctx.fill();
+          ctx.fillStyle = '#eef'; ctx.beginPath(); ctx.arc(moonX, moonY, 22, 0, PI * 2); ctx.fill();
           ctx.restore();
         }
+
         // ground base
         ctx.fillStyle = COLORS.GROUND; ctx.fillRect(-8, HORIZON, W + 16, H - HORIZON + 8);
         // parallax layers
@@ -995,14 +1053,13 @@
         drawLayer(MOUNTAINS, hillOffset, HORIZON - MOUNTAINS.h + 8 + py * 0.7);
         drawLayer(DUNES, duneOffset, HORIZON - DUNES.h + 14 + py);
 
-        // night clouds rolling in after the moon appears (rendered AFTER mountains/dunes so they're visible)
-        if (typeof gameTime !== 'undefined' && gameTime > 20) {
-          const cloudFade = Math.min(1, (gameTime - 20) / 10);
+        // night clouds rolling in
+        if (window.currentDarkness > 0.1) {
           const now = performance.now();
           ctx.save();
-          ctx.globalAlpha = cloudFade * 0.8;
+          ctx.globalAlpha = window.currentDarkness * 0.8;
           drawLayer(NIGHT_CLOUDS_1, skyOffset * 0.3 + now * 0.012, HORIZON - NIGHT_CLOUDS_1.h - 40 + Math.sin(now * 0.0004) * 6);
-          ctx.globalAlpha = cloudFade * 0.6;
+          ctx.globalAlpha = window.currentDarkness * 0.6;
           drawLayer(NIGHT_CLOUDS_2, skyOffset * 0.2 - now * 0.008, HORIZON - NIGHT_CLOUDS_2.h + 10 + Math.sin(now * 0.0003 + 1) * 8);
           ctx.restore();
         }
@@ -1328,14 +1385,35 @@
         const jumpOffset = Math.max(0, playerAltitude - playerY);
         const truckScreenY = shadowScreenY - (cameraDepth / playerZ) * jumpOffset * H / 2;
 
+        const steerDir = speed * ((keys.left && state === 'racing') ? -1 : (keys.right && state === 'racing') ? 1 : 0);
+
         drawPlayer(speed / maxSpeed, cameraDepth / playerZ, W / 2,
           truckScreenY, shadowScreenY,
-          speed * ((keys.left && state === 'racing') ? -1 : (keys.right && state === 'racing') ? 1 : 0),
+          steerDir,
           playerSeg.p2.world.y - playerSeg.p1.world.y);
 
         if (boosting) {
           ctx.fillStyle = 'rgba(255,140,40,0.10)'; ctx.fillRect(-8, -8, W + 16, H + 16);
         }
+
+        // Headlights at night
+        if (window.currentDarkness > 0.2) {
+          const hlAlpha = window.currentDarkness * 0.12;
+          ctx.save();
+          ctx.globalCompositeOperation = 'screen';
+          const hlGrad = ctx.createLinearGradient(W / 2, truckScreenY, W / 2, H);
+          hlGrad.addColorStop(0, `rgba(255,240,200,${hlAlpha})`);
+          hlGrad.addColorStop(1, 'rgba(255,240,200,0)');
+          ctx.fillStyle = hlGrad;
+          ctx.beginPath();
+          ctx.moveTo(W / 2 - 20, truckScreenY + 20);
+          ctx.lineTo(W / 2 + 20, truckScreenY + 20);
+          ctx.lineTo(W / 2 + 350 + steerDir * 1.5, H);
+          ctx.lineTo(W / 2 - 350 + steerDir * 1.5, H);
+          ctx.fill();
+          ctx.restore();
+        }
+
         return playerSeg;
       }
 
