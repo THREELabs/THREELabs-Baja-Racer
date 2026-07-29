@@ -37,15 +37,17 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
       background: #000;
     }
 
     #frame {
-      position: absolute;
-      inset: 0;
+      position: relative;
+      flex-grow: 1;
+      width: 100%;
       background: #000;
-      line-height: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       overflow: hidden;
     }
 
@@ -53,38 +55,20 @@
       display: block;
       width: 100%;
       height: 100%;
-      object-fit: fill;
+      object-fit: contain;
       image-rendering: pixelated;
       image-rendering: crisp-edges;
     }
 
-    #legend {
-      position: absolute;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 12px;
-      letter-spacing: 1px;
-      text-align: center;
-      opacity: .75;
-      max-width: 90vw;
-      z-index: 10;
-      text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
-    }
 
-    #legend b {
-      color: #ffd479;
-    }
 
     /* touch controls (Bootstrap) */
     #pad {
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
       width: 100%;
       max-width: 600px;
       display: none;
+      padding: 10px 10px 20px 10px;
+      background: #111;
       z-index: 100;
     }
 
@@ -102,10 +86,6 @@
     @media (hover:none) {
       #pad {
         display: block;
-      }
-
-      #legend {
-        display: none;
       }
     }
   </style>
@@ -133,10 +113,7 @@
         </div>
       </div>
     </div>
-    <div id="legend">
-      <b>↑/W</b> gas &nbsp; <b>↓/S</b> brake &nbsp; <b>←→/AD</b> steer &nbsp;
-      <b>SHIFT / SPACE</b> nitro &nbsp; <b>ENTER</b> start/restart &nbsp; <b>P</b> pause &nbsp; <b>M</b> mute
-    </div>
+
     <div id="ytplayer"
       style="position:absolute; top:-1000px; left:-1000px; width:200px; height:200px; opacity:0; z-index:-1; pointer-events:none;">
     </div>
